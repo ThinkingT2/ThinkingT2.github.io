@@ -63,31 +63,59 @@ document.getElementById('certModal').addEventListener('click', function(event) {
     if (event.target === this) closeLightbox();
 });
 
-// --- UNIQUE FEATURE 1: Scroll Progress Bar ---
+// --- 4. Scroll Progress Bar (Optimized for Performance) ---
+let ticking = false;
 window.addEventListener('scroll', () => {
-    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const scrolled = (winScroll / height) * 100;
-    document.getElementById("scroll-progress").style.width = scrolled + "%";
+    if (!ticking) {
+        window.requestAnimationFrame(() => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("scroll-progress").style.width = scrolled + "%";
+            ticking = false;
+        });
+        ticking = true;
+    }
 });
 
-// --- UNIQUE FEATURE 2: Typewriter Effect ---
-const subtitleText = "E-Commerce Specialist | Senior @ UIT-VNU";
+// --- 5. Back to Top Button Visibility ---
+const backToTopBtn = document.querySelector('.back-to-top');
+if (backToTopBtn) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.style.opacity = '1';
+            backToTopBtn.style.pointerEvents = 'auto';
+        } else {
+            backToTopBtn.style.opacity = '0';
+            backToTopBtn.style.pointerEvents = 'none';
+        }
+    });
+}
+
+// --- 6. Typewriter Effect (With Fallback Clearing) ---
+const subtitleText = "E-Commerce & Digital Marketing Specialist";
 const typewriterElement = document.getElementById('typewriter');
 let typeIndex = 0;
 
 function typeWriter() {
+    // Clear the existing HTML text on the first tick
+    if (typeIndex === 0) {
+        typewriterElement.innerHTML = ''; 
+    }
+    
     if (typeIndex < subtitleText.length) {
         typewriterElement.innerHTML += subtitleText.charAt(typeIndex);
         typeIndex++;
         setTimeout(typeWriter, 50); // Speed of typing in ms
     }
 }
-// Start typing when page loads
-window.onload = typeWriter;
+// Start typing with a slight delay so the user sees it happen
+window.onload = () => {
+    setTimeout(typeWriter, 500); 
+};
 
 
-// --- UNIQUE FEATURE 3: Custom Project Slider ---
+// --- 7. Custom Project Slider (With Autoplay & Pause on Hover) ---
 const track = document.getElementById('project-slider');
 const slides = Array.from(track.children);
 const nextButton = document.getElementById('slider-next');
@@ -95,6 +123,7 @@ const prevButton = document.getElementById('slider-prev');
 const dotsContainer = document.getElementById('slider-dots');
 
 let currentSlide = 0;
+let slideInterval; // Variable to hold the autoplay timer
 
 // Create dots
 slides.forEach((_, index) => {
@@ -116,14 +145,31 @@ function updateSlider() {
     dots[currentSlide].classList.add('active');
 }
 
+// Autoplay Logic
+function startSlideShow() {
+    slideInterval = setInterval(() => {
+        currentSlide = (currentSlide + 1) % slides.length;
+        updateSlider();
+    }, 4000); // Change slide every 4 seconds
+}
+
+function stopSlideShow() {
+    clearInterval(slideInterval);
+}
+
+// Manual Controls
 nextButton.addEventListener('click', () => {
-    currentSlide = (currentSlide + 1) % slides.length; // Loop back to start
+    currentSlide = (currentSlide + 1) % slides.length;
     updateSlider();
+    stopSlideShow(); // Pause autoplay when manually interacting
+    startSlideShow(); // Restart timer
 });
 
 prevButton.addEventListener('click', () => {
-    currentSlide = (currentSlide - 1 + slides.length) % slides.length; // Loop to end
+    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
     updateSlider();
+    stopSlideShow();
+    startSlideShow();
 });
 
 // Clickable dots
@@ -131,5 +177,14 @@ dots.forEach(dot => {
     dot.addEventListener('click', (e) => {
         currentSlide = parseInt(e.target.dataset.index);
         updateSlider();
+        stopSlideShow();
+        startSlideShow();
     });
 });
+
+// Pause completely when mouse is over the slider
+track.addEventListener('mouseenter', stopSlideShow);
+track.addEventListener('mouseleave', startSlideShow);
+
+// Initiate Autoplay
+startSlideShow();

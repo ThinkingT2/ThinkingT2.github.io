@@ -740,3 +740,13 @@ a:focus-visible, button:focus-visible {
         margin-top: 20px;
     }
 }
+/* Add this to make the Contact button pulse softly */
+@keyframes softPulse {
+    0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(88, 166, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); }
+}
+
+.hero-btns a[href^="mailto:"] {
+    animation: softPulse 2.5s infinite;
+}
